@@ -12,8 +12,8 @@ console.log('      ' + date.month + '月 ' + date.year)
 console.log('日 月 火 水 木 金 土')
 
 for (let i = 0; i < firstDay.weekday; i++) {
-  if (firstDay.weekday != 7) {
-  process.stdout.write('   ')
+  if (firstDay.weekday !== 7) {
+    process.stdout.write('   ')
   }
 }
 
