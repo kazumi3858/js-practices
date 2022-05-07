@@ -10,15 +10,18 @@ class SavedMemo {
 }
 
 class NewMemo {
-  createMemo () {
+  createMemoObject (input) {
+    return {
+      name: input.trim().split('\n')[0],
+      content: input.trim(),
+      value: new Date().getTime()
+    }
+  }
+
+  saveMemo () {
     process.stdin.on('data', async input => {
-      const memoObject = {
-        name: input.trim().split('\n')[0],
-        content: input.trim(),
-        value: new Date().getTime()
-      }
       const memos = await SavedMemo.readJson()
-      memos.push(memoObject)
+      memos.push(this.createMemoObject(input))
       fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
     })
   }
@@ -84,7 +87,7 @@ class MemoRemoval {
 
 switch (process.argv[2]) {
   case undefined:
-    new NewMemo().createMemo()
+    new NewMemo().saveMemo()
     break
   case '-l':
     new MemoList().showTitles()
