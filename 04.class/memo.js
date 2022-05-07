@@ -3,7 +3,7 @@ const { Select } = require('enquirer')
 process.stdin.setEncoding('utf8')
 
 class SavedMemo {
-  readJson = () => {
+  static readJson () {
     const jsonFile = fs.readFileSync('./memo_list.json', 'utf8')
     return JSON.parse(jsonFile)
   }
@@ -17,7 +17,7 @@ class NewMemo {
         content: input.trim(),
         value: new Date().getTime()
       }
-      const memos = await new SavedMemo().readJson()
+      const memos = await SavedMemo.readJson()
       memos.push(memoObject)
       fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
     })
@@ -26,24 +26,27 @@ class NewMemo {
 
 class MemoList {
   showTitles () {
-    new SavedMemo().readJson().forEach(memo => console.log(memo.name))
+    SavedMemo.readJson().forEach(memo => console.log(memo.name))
   }
 }
 
 class MemoDetails {
-  showDetails () {
-    const prompt = new Select({
+  createMemoChoices () {
+    return new Select({
       name: 'value',
       message: 'Choose a note you want to see',
-      choices: new SavedMemo().readJson(),
+      choices: SavedMemo.readJson(),
       result (names) {
         return this.map(names)
       }
     })
+  }
 
-    prompt.run()
+  showDetails () {
+    const memoChoices = this.createMemoChoices()
+    memoChoices.run()
       .then(answer => {
-        prompt.choices.forEach(memo => {
+        memoChoices.choices.forEach(memo => {
           if (memo.value === Object.values(answer)[0]) {
             console.log(memo.content)
           }
@@ -58,7 +61,7 @@ class MemoRemoval {
     const prompt = new Select({
       name: 'value',
       message: 'Choose a note you want to delete',
-      choices: new SavedMemo().readJson(),
+      choices: SavedMemo.readJson(),
       result (names) {
         return this.map(names)
       }
@@ -66,7 +69,7 @@ class MemoRemoval {
 
     prompt.run()
       .then(answer => {
-        const memos = new SavedMemo().readJson()
+        const memos = SavedMemo.readJson()
         memos.forEach((memo, index) => {
           if (memo.value === Object.values(answer)[0]) {
             memos.splice(index, 1)
