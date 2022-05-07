@@ -28,60 +28,64 @@ class NewMemo {
 }
 
 class MemoList {
-  showTitles () {
-    SavedMemo.readJson().forEach(memo => console.log(memo.name))
+  showFirstLines () {
+    const memos = SavedMemo.readJson()
+    if (memos.length === 0) {
+      console.log('Not found.')
+    } else {
+      memos.forEach(memo => console.log(memo.name))
+    }
   }
-}
 
-class MemoDetails {
-  createMemoChoices () {
+  createChoices (action) {
     return new Select({
       name: 'value',
-      message: 'Choose a note you want to see',
+      message: `Choose a note you want to ${action}`,
       choices: SavedMemo.readJson(),
       result (names) {
         return this.map(names)
       }
     })
   }
+}
 
+class MemoDetails {
   showDetails () {
-    const memoChoices = this.createMemoChoices()
-    memoChoices.run()
-      .then(answer => {
-        memoChoices.choices.forEach(memo => {
-          if (memo.value === Object.values(answer)[0]) {
-            console.log(memo.content)
-          }
+    const memoChoices = new MemoList().createChoices('see')
+    if (memoChoices.choices.length === 0) {
+      console.log('Not found.')
+    } else {
+      memoChoices.run()
+        .then(answer => {
+          memoChoices.choices.forEach(memo => {
+            if (memo.value === Object.values(answer)[0]) {
+              console.log(memo.content)
+            }
+          })
         })
-      })
-      .catch(console.error)
+        .catch(console.error)
+    }
   }
 }
 
 class MemoRemoval {
   deleteMemo () {
-    const prompt = new Select({
-      name: 'value',
-      message: 'Choose a note you want to delete',
-      choices: SavedMemo.readJson(),
-      result (names) {
-        return this.map(names)
-      }
-    })
-
-    prompt.run()
-      .then(answer => {
-        const memos = SavedMemo.readJson()
-        memos.forEach((memo, index) => {
-          if (memo.value === Object.values(answer)[0]) {
-            memos.splice(index, 1)
-            fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
-            console.log('The note has been deleted.')
-          }
+    const memos = SavedMemo.readJson()
+    if (memos.length === 0) {
+      console.log('Not found.')
+    } else {
+      new MemoList().createChoices('delete').run()
+        .then(answer => {
+          memos.forEach((memo, index) => {
+            if (memo.value === Object.values(answer)[0]) {
+              memos.splice(index, 1)
+              fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
+              console.log('The note has been deleted.')
+            }
+          })
         })
-      })
-      .catch(console.error)
+        .catch(console.error)
+    }
   }
 }
 
@@ -90,7 +94,7 @@ switch (process.argv[2]) {
     new NewMemo().saveMemo()
     break
   case '-l':
-    new MemoList().showTitles()
+    new MemoList().showFirstLines()
     break
   case '-r':
     new MemoDetails().showDetails()
