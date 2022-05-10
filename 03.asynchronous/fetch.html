@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>非同期処理の課題</title>
+  <script>
+    async function getHTML() {
+      const fjold = await fetch('https://bootcamp.fjord.jp/')
+      const fjoldHTML = await fjold.text()
+      console.log(fjoldHTML)
+    }
+    getHTML()
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
