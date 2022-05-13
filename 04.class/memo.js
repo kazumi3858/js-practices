@@ -2,34 +2,33 @@ const fs = require('fs')
 const { Select } = require('enquirer')
 process.stdin.setEncoding('utf8')
 
-class SavedMemo {
-  static readJson () {
-    const jsonFile = fs.readFileSync('./memo_list.json', 'utf8')
-    return JSON.parse(jsonFile)
+class Memo {
+  constructor (name, content, value) {
+    this.name = name
+    this.content = content
+    this.value = value
   }
 }
 
-class NewMemo {
-  createMemoObject (input) {
-    return {
-      name: input.trim().split('\n')[0],
-      content: input.trim(),
-      value: new Date().getTime()
-    }
+class MemoApp {
+  readMemos () {
+    const jsonFile = fs.readFileSync('./memo_list.json', 'utf8')
+    return JSON.parse(jsonFile).map(memo => new Memo(memo.name, memo.content, memo.value))
   }
 
   saveMemo () {
     process.stdin.on('data', async input => {
-      const memos = await SavedMemo.readJson()
-      memos.push(this.createMemoObject(input))
+      const name = input.trim().split('\n')[0]
+      const content = input.trim()
+      const value = new Date().getTime()
+      const memos = await this.readMemos()
+      memos.push(new Memo(name, content, value))
       fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
     })
   }
-}
 
-class MemoList {
   showFirstLines () {
-    const memos = SavedMemo.readJson()
+    const memos = this.readMemos()
     if (memos.length === 0) {
       console.log('Not found.')
     } else {
@@ -41,17 +40,15 @@ class MemoList {
     return new Select({
       name: 'value',
       message: `Choose a note you want to ${action}`,
-      choices: SavedMemo.readJson(),
+      choices: this.readMemos(),
       result (names) {
         return this.map(names)
       }
     })
   }
-}
 
-class MemoDetails {
   showDetails () {
-    const memoChoices = new MemoList().createChoices('see')
+    const memoChoices = this.createChoices('see')
     if (memoChoices.choices.length === 0) {
       console.log('Not found.')
     } else {
@@ -66,15 +63,13 @@ class MemoDetails {
         .catch(console.error)
     }
   }
-}
 
-class MemoRemoval {
   deleteMemo () {
-    const memos = SavedMemo.readJson()
+    const memos = this.readMemos()
     if (memos.length === 0) {
       console.log('Not found.')
     } else {
-      new MemoList().createChoices('delete').run()
+      this.createChoices('delete').run()
         .then(answer => {
           memos.forEach((memo, index) => {
             if (memo.value === Object.values(answer)[0]) {
@@ -91,14 +86,14 @@ class MemoRemoval {
 
 switch (process.argv[2]) {
   case undefined:
-    new NewMemo().saveMemo()
+    new MemoApp().saveMemo()
     break
   case '-l':
-    new MemoList().showFirstLines()
+    new MemoApp().showFirstLines()
     break
   case '-r':
-    new MemoDetails().showDetails()
+    new MemoApp().showDetails()
     break
   case '-d':
-    new MemoRemoval().deleteMemo()
+    new MemoApp().deleteMemo()
 }
