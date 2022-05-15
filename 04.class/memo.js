@@ -14,14 +14,20 @@ class Memo {
     return JSON.parse(jsonFile).map(memo => new Memo(memo.name, memo.content, memo.time))
   }
 
-  static createMemo (file) {
-    process.stdin.on('data', async input => {
-      const name = input.trim().split('\n')[0]
-      const content = input.trim()
-      const time = new Date().getTime()
-      const memos = await this.all(file)
-      memos.push(new Memo(name, content, time))
-      fs.writeFileSync(file, JSON.stringify(memos))
+  static create (file, name, content, time) {
+    const memos = this.all(file)
+    memos.push(new Memo(name, content, time))
+    fs.writeFileSync(file, JSON.stringify(memos))
+  }
+
+  static destroy (file, answer) {
+    const memos = this.all(file)
+    memos.forEach((memo, index) => {
+      if (memo.time === answer.time) {
+        memos.splice(index, 1)
+        fs.writeFileSync(file, JSON.stringify(memos))
+        console.log('The note has been deleted.')
+      }
     })
   }
 }
@@ -30,6 +36,15 @@ class MemoApp {
   constructor (file) {
     this.file = file
     this.memos = Memo.all(file)
+  }
+
+  createMemoFromInput () {
+    process.stdin.on('data', async input => {
+      const name = input.trim().split('\n')[0]
+      const content = input.trim()
+      const time = new Date().getTime()
+      Memo.create(this.file, name, content, time)
+    })
   }
 
   listFirstLines () {
@@ -61,20 +76,15 @@ class MemoApp {
   deleteMemo () {
     this.listChoices('delete').run()
       .then(answer => {
-        const memos = this.memos.map(memo => (({ name, content, time }) => ({ name, content, time }))(memo))
-        memos.forEach((memo, index) => {
-          if (memo.time === answer.time) {
-            memos.splice(index, 1)
-            fs.writeFileSync(this.file, JSON.stringify(memos))
-            console.log('The note has been deleted.')
-          }
-        })
+        Memo.destroy(this.file, answer)
       })
       .catch(console.error)
   }
 
   runApp (option) {
-    if (this.memos.length === 0) {
+    if (option === undefined) {
+      this.createMemoFromInput()
+    } else if (this.memos.length === 0) {
       console.log('Not found.')
     } else {
       switch (option) {
@@ -94,11 +104,4 @@ class MemoApp {
   }
 }
 
-const file = './memo_list.json'
-const option = process.argv[2]
-
-if (option) {
-  new MemoApp(file).runApp(option)
-} else {
-  Memo.createMemo(file)
-}
+new MemoApp('./memo_list.json').runApp(process.argv[2])
