@@ -28,15 +28,15 @@ class Memo {
 
 class MemoApp {
   constructor (file) {
+    this.file = file
     this.memos = Memo.all(file)
   }
 
   showFirstLines () {
-    const memos = this.memos
-    if (memos.length === 0) {
+    if (this.memos.length === 0) {
       console.log('Not found.')
     } else {
-      memos.forEach(memo => console.log(memo.name))
+      this.memos.forEach(memo => console.log(memo.name))
     }
   }
 
@@ -52,13 +52,12 @@ class MemoApp {
   }
 
   showDetails () {
-    const memoChoices = this.createChoices('see')
-    if (memoChoices.choices.length === 0) {
+    if (this.memos.length === 0) {
       console.log('Not found.')
     } else {
-      memoChoices.run()
+      this.createChoices('see').run()
         .then(answer => {
-          memoChoices.choices.forEach(memo => {
+          this.memos.forEach(memo => {
             if (memo.time === answer.time) {
               console.log(memo.content)
             }
@@ -78,7 +77,7 @@ class MemoApp {
           memos.forEach((memo, index) => {
             if (memo.time === answer.time) {
               memos.splice(index, 1)
-              fs.writeFileSync('./memo_list.json', JSON.stringify(memos))
+              fs.writeFileSync(this.file, JSON.stringify(memos))
               console.log('The note has been deleted.')
             }
           })
