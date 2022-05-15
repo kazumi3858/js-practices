@@ -42,7 +42,6 @@ class MemoApp {
 
   createChoices (action) {
     return new Select({
-      name: 'time',
       message: `Choose a note you want to ${action}`,
       choices: this.memos,
       result () {
@@ -73,7 +72,7 @@ class MemoApp {
     } else {
       this.createChoices('delete').run()
         .then(answer => {
-          const memos = this.memos.map (memo => (({name, content, time}) => ({name, content, time}))(memo))
+          const memos = this.memos.map(memo => (({ name, content, time }) => ({ name, content, time }))(memo))
           memos.forEach((memo, index) => {
             if (memo.time === answer.time) {
               memos.splice(index, 1)
