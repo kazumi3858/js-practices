@@ -95,10 +95,10 @@ class MemoApp {
 }
 
 const file = './memo_list.json'
-const argv = process.argv[2]
+const option = process.argv[2]
 
-if (argv) {
-  new MemoApp(file).runApp(argv)
+if (option) {
+  new MemoApp(file).runApp(option)
 } else {
   Memo.createMemo(file)
 }
