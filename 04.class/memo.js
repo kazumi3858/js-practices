@@ -32,15 +32,11 @@ class MemoApp {
     this.memos = Memo.all(file)
   }
 
-  showFirstLines () {
-    if (this.memos.length === 0) {
-      console.log('Not found.')
-    } else {
-      this.memos.forEach(memo => console.log(memo.name))
-    }
+  listFirstLines () {
+    this.memos.forEach(memo => console.log(memo.name))
   }
 
-  createChoices (action) {
+  listChoices (action) {
     return new Select({
       message: `Choose a note you want to ${action}`,
       choices: this.memos,
@@ -51,54 +47,58 @@ class MemoApp {
   }
 
   showDetails () {
-    if (this.memos.length === 0) {
-      console.log('Not found.')
-    } else {
-      this.createChoices('see').run()
-        .then(answer => {
-          this.memos.forEach(memo => {
-            if (memo.time === answer.time) {
-              console.log(memo.content)
-            }
-          })
+    this.listChoices('see').run()
+      .then(answer => {
+        this.memos.forEach(memo => {
+          if (memo.time === answer.time) {
+            console.log(memo.content)
+          }
         })
-        .catch(console.error)
-    }
+      })
+      .catch(console.error)
   }
 
   deleteMemo () {
+    this.listChoices('delete').run()
+      .then(answer => {
+        const memos = this.memos.map(memo => (({ name, content, time }) => ({ name, content, time }))(memo))
+        memos.forEach((memo, index) => {
+          if (memo.time === answer.time) {
+            memos.splice(index, 1)
+            fs.writeFileSync(this.file, JSON.stringify(memos))
+            console.log('The note has been deleted.')
+          }
+        })
+      })
+      .catch(console.error)
+  }
+
+  runApp (option) {
     if (this.memos.length === 0) {
       console.log('Not found.')
     } else {
-      this.createChoices('delete').run()
-        .then(answer => {
-          const memos = this.memos.map(memo => (({ name, content, time }) => ({ name, content, time }))(memo))
-          memos.forEach((memo, index) => {
-            if (memo.time === answer.time) {
-              memos.splice(index, 1)
-              fs.writeFileSync(this.file, JSON.stringify(memos))
-              console.log('The note has been deleted.')
-            }
-          })
-        })
-        .catch(console.error)
+      switch (option) {
+        case '-l':
+          this.listFirstLines()
+          break
+        case '-r':
+          this.showDetails()
+          break
+        case '-d':
+          this.deleteMemo()
+          break
+        default:
+          console.log('Please type a correct option.')
+      }
     }
   }
 }
 
 const file = './memo_list.json'
-const memoApp = new MemoApp(file)
+const argv = process.argv[2]
 
-switch (process.argv[2]) {
-  case undefined:
-    Memo.createMemo(file)
-    break
-  case '-l':
-    memoApp.showFirstLines()
-    break
-  case '-r':
-    memoApp.showDetails()
-    break
-  case '-d':
-    memoApp.deleteMemo()
+if (argv) {
+  new MemoApp(file).runApp(argv)
+} else {
+  Memo.createMemo(file)
 }
