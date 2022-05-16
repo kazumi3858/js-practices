@@ -20,10 +20,10 @@ class Memo {
     fs.writeFileSync(file, JSON.stringify(memos))
   }
 
-  static destroy (file, answer) {
-    const memos = this.all(file)
+  destroy (file) {
+    const memos = Memo.all(file)
     memos.forEach((memo, index) => {
-      if (memo.time === answer.time) {
+      if (memo.time === this.time) {
         memos.splice(index, 1)
         fs.writeFileSync(file, JSON.stringify(memos))
         console.log('The note has been deleted.')
@@ -76,7 +76,7 @@ class MemoApp {
   deleteMemo () {
     this.listChoices('delete').run()
       .then(answer => {
-        Memo.destroy(this.file, answer)
+        answer.destroy(this.file)
       })
       .catch(console.error)
   }
