@@ -1,0 +1,14 @@
+{
+  "name": "04.class",
+  "version": "1.0.0",
+  "description": "memo program",
+  "main": "memo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "kazumi",
+  "license": "ISC",
+  "dependencies": {
+    "enquirer": "^2.3.6"
+  }
+}
